@@ -4,6 +4,7 @@ import { useMemo } from "react"
 import { useWeb3React } from "@web3-react/core"
 import { getContract } from "../utils/getContract"
 import { VampyAddresses } from "../constants/VampyAddresses"
+import erc20abi from '../abi/erc20abi.json'
 export function useContract<T extends Contract = Contract>(
     addressOrAddressMap: string | { [chainId: number]: string } | undefined,
     ABI: any,
@@ -30,5 +31,8 @@ export function useContract<T extends Contract = Contract>(
 
   export function useVampContract(address: any): Contract | null {
     return useContract(address, VampAbi, true)
+  }
+  export function useErc20Contract(address: any): Contract | null {
+    return useContract(address, erc20abi, true)
   }
   

@@ -7,10 +7,8 @@ import { injectedConnector } from '../connectors'
 import { useWeb3React } from '@web3-react/core'
 import { useState,useEffect } from 'react'
 import Vampabi from '../abi/vampabi.json'
-import { useVampContract } from '../hooks/useContract'
+import { useErc20Contract, useVampContract } from '../hooks/useContract'
 import { Contract } from '@ethersproject/contracts'
-
-
 import {
     Formik,
     FormikHelpers,
@@ -20,7 +18,7 @@ import {
     FieldProps,
   } from 'formik';
  
-
+import Table from '../components/table'
 import { errors, ethers } from 'ethers'
 import { BigNumber } from '@ethersproject/bignumber'
 import { formatEther } from '@ethersproject/units'
@@ -42,11 +40,30 @@ interface MyFormValues {
 
 const Testpage = () => {
     const [Tokens, setTokens] = useState<BigNumber | number | string>(0)
-    const [Address, setAddress] = useState('')
+    const [Addresses, setAddresses] = useState([])
     const initialValues: MyFormValues = { address: '' };
 
     const VampAddress = "0x4442B1e827Cc411624711c9E36CCC2fF4946065A"
     const VampContract = useVampContract(VampAddress)
+    const Erc20Contract = useErc20Contract(VampAddress)
+    const createTableArray = async ():Promise<string[][]> => {
+        let Tablearr: string[][] = [];
+        var VampNum = await VampContract?.getListLength()
+        var ListNum: number = VampNum.toNumber()
+        console.log(ListNum);
+        for(let x = 0; x < ListNum; x++){
+            let address: string = await VampContract?.shibaList(x)
+            let newErc20 = Erc20Contract?.attach(address)
+            let symbol: string = await newErc20?.symbol();
+            let name: string = await newErc20?.name();
+            Tablearr[x] = [name,symbol,address]
+        }
+        return Tablearr
+
+
+
+    }
+
 
     const {chainId, account, activate, active,library} = useWeb3React<Web3Provider>()
     const onClick = async() => {
@@ -54,22 +71,36 @@ const Testpage = () => {
         
         
       }
+      useEffect( () => {
+          if (active) {
+            const logAddress = async() => {
+                setAddresses(await VampContract?.shibaList(1))
+        
+            }
+            logAddress()
+
+
+          }
+      }, [active])
+      useEffect(() => {
+          console.log(Addresses);
+      }, [Addresses])
     const getTokens = async() => {
         try {
             if(VampContract) {
                 const TokenCount = await VampContract.balanceOf(account)
                 setTokens(formatEther(TokenCount))
                 console.log(formatEther(TokenCount))
+                console.log(Addresses);
 
             }
      
-
         }
         catch(err){
             console.log(err)
         }
      
-
+//[["Dummy","DMY","0xxxxxx"],["Testy","TST","0x7788884"]] dummy data
  
     }
     return (
@@ -81,6 +112,10 @@ const Testpage = () => {
                    Metamask is connected.
                    <br/>
                    Welcome {account}!
+                   <br/>
+                   <br/>
+                   
+                   <Table TableArr={createTableArray()}/>
                </CardStyled>
                <CardStyled>
                    Current Vamp token count:
@@ -92,23 +127,51 @@ const Testpage = () => {
                        Get Tokens
                    </ButtonStyled>
                    <br/>
-                   Enter Shib Addresses:
+                   Enter Shib Address:
                    <Formik
          initialValues={initialValues}
          onSubmit={async(values, actions) => {
            console.log({ values, actions });
            actions.setSubmitting(false);
            await VampContract?.AddToken(values.address,1)
-           console.log(await VampContract?.Shibas(values.address));
+           console.log(await VampContract?.shibaList(1));
+           console.log(await VampContract?.shibaList(2));
+
 
          }}
        >
          <Form>
-           <label htmlFor="address">First Name</label>
+           <label htmlFor="address"></label>
            <Field id="address" name="address" placeholder="Address" />
+           <br />
            <button type="submit">Submit</button>
          </Form>
        </Formik>
+       <ButtonStyled onClick={() => {
+           
+       }}>
+           Approve
+       </ButtonStyled>
+
+
+       <Formik
+         initialValues={initialValues}
+         onSubmit={async(values, actions) => {
+           console.log({ values, actions });
+           actions.setSubmitting(false);
+
+
+         }}
+       >
+         <Form>
+           <label htmlFor="address">Burn Tokens</label>
+           <Field id="address" name="address" placeholder="Address" />
+           <Field id="number" name="number" placeholder="Number" />
+           <br />
+           <button type="submit">Submit</button>
+         </Form>
+       </Formik>
+
                </CardStyled>
                </Wrapper>
            ): (
