@@ -43,6 +43,7 @@ const Table:React.FC<Propy> = (props) => {
 
     return (
         <Wrapper>
+            <thead>
              <tr>
                            <th>
                                Name
@@ -53,17 +54,20 @@ const Table:React.FC<Propy> = (props) => {
                            <th>
                                Address
                            </th>
+                    
                            </tr>
+                           </thead>
+                           <tbody>
 
 
 
                            {Table && Table.map((item,index) => {
                                return (
-                                   <tr>
-                                            {item.map((item)=> {
+                                   <tr key={`tr-${index}`}>
+                                            {item.map((item,index)=> {
                                                 return (
                                                     
-                                                <td>
+                                                <td key={`td-${index}`}>
                                                 {item}
                                             </td>
 
@@ -84,7 +88,7 @@ const Table:React.FC<Propy> = (props) => {
 {/*                            <td>{props.TableArr[0][0]}</td>
                            <td>{props.TableArr[0][1]}</td>
                            <td>{props.TableArr[0][2]}</td> */}
-            
+            </tbody>
         </Wrapper>
     )
 }

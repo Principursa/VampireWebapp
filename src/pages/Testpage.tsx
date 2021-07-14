@@ -34,6 +34,7 @@ width: 100vw;
 
 
 interface MyFormValues {
+    number: any
     address: string;
   }
  
@@ -41,9 +42,10 @@ interface MyFormValues {
 const Testpage = () => {
     const [Tokens, setTokens] = useState<BigNumber | number | string>(0)
     const [Addresses, setAddresses] = useState([])
-    const initialValues: MyFormValues = { address: '' };
 
-    const VampAddress = "0x4442B1e827Cc411624711c9E36CCC2fF4946065A"
+    const initialValues: MyFormValues = { address: '', number: 0 };
+
+    const VampAddress = "0xdD8A4824809CDdE4F9beb1BFC58c3949d16a5Ca6"
     const VampContract = useVampContract(VampAddress)
     const Erc20Contract = useErc20Contract(VampAddress)
     const createTableArray = async ():Promise<string[][]> => {
@@ -127,7 +129,7 @@ const Testpage = () => {
                        Get Tokens
                    </ButtonStyled>
                    <br/>
-                   Enter Shib Address:
+Index Token address:
                    <Formik
          initialValues={initialValues}
          onSubmit={async(values, actions) => {
@@ -147,11 +149,28 @@ const Testpage = () => {
            <button type="submit">Submit</button>
          </Form>
        </Formik>
-       <ButtonStyled onClick={() => {
+       <Formik
+         initialValues={initialValues}
+         onSubmit={async(values, actions) => {
+           console.log({ values, actions });
+           actions.setSubmitting(false);
+           const newErc20 = Erc20Contract?.attach(values.address)
+           const balance = newErc20?.balanceOf(account)
+           await newErc20?.approve(VampContract?.address,balance)
+           console.log(balance);
+
+
+         }}
+       >
+         <Form>
+           <label htmlFor="address">approve tokens</label>
+           <br />
+           <Field id="address" name="address" placeholder="Address" />
+           <br />
+           <button type="submit">Submit</button>
+         </Form>
+       </Formik>
            
-       }}>
-           Approve
-       </ButtonStyled>
 
 
        <Formik
@@ -159,12 +178,16 @@ const Testpage = () => {
          onSubmit={async(values, actions) => {
            console.log({ values, actions });
            actions.setSubmitting(false);
+           await VampContract?.burnShibas(values.address,values.number)
+           
 
 
          }}
        >
          <Form>
-           <label htmlFor="address">Burn Tokens</label>
+           <label htmlFor="address">Burn indexed Tokens</label>
+           <label htmlFor="number"></label>
+           <br />
            <Field id="address" name="address" placeholder="Address" />
            <Field id="number" name="number" placeholder="Number" />
            <br />
@@ -181,8 +204,10 @@ const Testpage = () => {
            <ButtonStyled onClick={onClick}>
                Connect
            </ButtonStyled>
+          
 
                </CardStyled>
+               
                </Wrapper>
            )}
        
